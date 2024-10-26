@@ -247,7 +247,6 @@ function setupSocket(socket) {
             player.cells = playerData.cells;
             player.zoom = playerData.zoom;
         }
-        console.log(playerData)
         users = userData;
         foods = foodsList;
         viruses = virusList;
@@ -340,14 +339,15 @@ function gameLoop() {
             let color = 'hsl(' + users[i].hue + ', 100%, 50%)';
             let borderColor = 'hsl(' + users[i].hue + ', 100%, 45%)';
             for (var j = 0; j < users[i].cells.length; j++) {
+                const cellPosition = getPosition(users[i].cells[j], player, global.screen, player.zoom)
                 cellsToDraw.push({
                     color: color,
                     borderColor: borderColor,
                     mass: users[i].cells[j].mass,
                     name: users[i].name,
                     radius: users[i].cells[j].radius,
-                    x: users[i].cells[j].x - player.x + global.screen.width / 2,
-                    y: users[i].cells[j].y - player.y + global.screen.height / 2
+                    x: cellPosition.x,
+                    y: cellPosition.y
                 });
             }
         }
