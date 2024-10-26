@@ -57,11 +57,11 @@ const regulatePoint = (point, borders) => ({
     y: valueInRange(borders.top, borders.bottom, point.y)
 });
 
-const drawCellWithLines = (cell, borders, graph) => {
+const drawCellWithLines = (cell, borders, graph, zoom) => {
     let pointCount = 30 + ~~(cell.mass / 5);
     let points = [];
     for (let theta = 0; theta < FULL_ANGLE; theta += FULL_ANGLE / pointCount) {
-        let point = circlePoint(cell, cell.radius, theta);
+        let point = circlePoint(cell, cell.radius / zoom, theta);
         points.push(regulatePoint(point, borders));
     }
     graph.beginPath();
@@ -79,12 +79,11 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph, zoom) =
         // Draw the cell itself
         graph.fillStyle = cell.color;
         graph.strokeStyle = cell.borderColor;
-        graph.lineWidth = 6;
+        graph.lineWidth = 6 / zoom;
         if (cellTouchingBorders(cell, borders)) {
             // Asssemble the cell from lines
-            drawCellWithLines(cell, borders, graph);
+            drawCellWithLines(cell, borders, graph, zoom);
         } else {
-            graph.lineWidth = 6 / zoom;
             // Border corrections are not needed, the cell can be drawn as a circle
             drawRoundObject(cell, cell.radius, graph, zoom);
         }
