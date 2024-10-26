@@ -323,11 +323,6 @@ function gameLoop() {
             let position = getPosition(fireFood, player, global.screen, global.zoom);
             render.drawFireFood(position, fireFood, playerConfig, graph, global.zoom);
         });
-        viruses.forEach(virus => {
-            let position = getPosition(virus, player, global.screen, global.zoom);
-            render.drawVirus(position, virus, graph, global.zoom);
-        });
-
 
         let borders = { // Position of the borders on the screen
             left: global.screen.width / 2 - player.x,
@@ -359,6 +354,11 @@ function gameLoop() {
             return obj1.mass - obj2.mass;
         });
         render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph, global.zoom);
+
+        viruses.forEach(virus => {
+            let position = getPosition(virus, player, global.screen, global.zoom);
+            render.drawVirus(position, virus, graph, global.zoom);
+        });
 
         socket.emit('0', window.canvas.target); // playerSendTarget "Heartbeat".
     }
