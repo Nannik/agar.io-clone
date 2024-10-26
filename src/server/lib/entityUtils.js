@@ -5,11 +5,10 @@ function getPosition(isUniform, radius, uniformPositions) {
 }
 
 function isVisibleEntity(entity, player, addThreshold = true) {
-    return true;
     const entityHalfSize = entity.radius + (addThreshold ? entity.radius * 0.1 : 0);
     return util.testRectangleRectangle(
         entity.x, entity.y, entityHalfSize, entityHalfSize,
-        player.x, player.y, player.screenWidth / 2, player.screenHeight / 2);
+        player.x, player.y, player.screenWidth  * player.zoom / 2, player.screenHeight * player.zoom / 2);
 }
 
 module.exports = {

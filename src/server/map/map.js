@@ -50,6 +50,7 @@ exports.Map = class {
                     massTotal: Math.round(player.massTotal),
                     hue: player.hue,
                     id: player.id,
+                    zoom: player.zoom,
                     name: player.name
                 };
             }

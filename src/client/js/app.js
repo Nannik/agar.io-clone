@@ -37,7 +37,7 @@ function startGame(type) {
     window.chat.registerFunctions();
     window.canvas.socket = socket;
     global.socket = socket;
-    global.zoom = 1;
+    player.zoom = 1;
 }
 
 // Checks if the nick chosen contains valid alphanumeric characters (and underscores).
@@ -245,7 +245,9 @@ function setupSocket(socket) {
             player.hue = playerData.hue;
             player.massTotal = playerData.massTotal;
             player.cells = playerData.cells;
+            player.zoom = playerData.zoom;
         }
+        console.log(playerData)
         users = userData;
         foods = foodsList;
         viruses = virusList;
@@ -310,18 +312,17 @@ function animloop() {
 
 function gameLoop() {
     if (global.gameStart) {
-        global.zoom = 1;
         graph.fillStyle = global.backgroundColor;
-        graph.fillRect(0, 0, global.screen.width * global.zoom, global.screen.height * global.zoom);
+        graph.fillRect(0, 0, global.screen.width * player.zoom, global.screen.height * player.zoom);
 
-        render.drawGrid(global, player, global.screen, graph, global.zoom);
+        render.drawGrid(global, player, global.screen, graph, player.zoom);
         foods.forEach(food => {
-            let position = getPosition(food, player, global.screen, global.zoom);
-            render.drawFood(position, food, graph, global.zoom);
+            let position = getPosition(food, player, global.screen, player.zoom);
+            render.drawFood(position, food, graph, player.zoom);
         });
         fireFood.forEach(fireFood => {
-            let position = getPosition(fireFood, player, global.screen, global.zoom);
-            render.drawFireFood(position, fireFood, playerConfig, graph, global.zoom);
+            let position = getPosition(fireFood, player, global.screen, player.zoom);
+            render.drawFireFood(position, fireFood, playerConfig, graph, player.zoom);
         });
 
         let borders = { // Position of the borders on the screen
@@ -353,11 +354,11 @@ function gameLoop() {
         cellsToDraw.sort(function (obj1, obj2) {
             return obj1.mass - obj2.mass;
         });
-        render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph, global.zoom);
+        render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph, player.zoom);
 
         viruses.forEach(virus => {
-            let position = getPosition(virus, player, global.screen, global.zoom);
-            render.drawVirus(position, virus, graph, global.zoom);
+            let position = getPosition(virus, player, global.screen, player.zoom);
+            render.drawVirus(position, virus, graph, player.zoom);
         });
 
         socket.emit('0', window.canvas.target); // playerSendTarget "Heartbeat".

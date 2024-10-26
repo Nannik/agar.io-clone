@@ -3,6 +3,7 @@
 const util = require('../lib/util');
 const sat = require('sat');
 const gameLogic = require('../game-logic');
+const config = require('../../../config')
 
 const MIN_SPEED = 6.25;
 const SPLIT_CELL_SPEED = 20;
@@ -104,6 +105,7 @@ exports.Player = class {
             x: 0,
             y: 0
         };
+        this.zoom = config.defaultZoom;
     }
 
     clientProvidedData(playerData) {
@@ -133,6 +135,13 @@ exports.Player = class {
     changeCellMass(cellIndex, massDifference) {
         this.cells[cellIndex].addMass(massDifference)
         this.massTotal += massDifference;
+
+        let cellZoom = this.cells.length * config.cellZoomFactor 
+        if (this.cells.length === 1) cellZoom = 1
+
+        this.zoom = 
+            (config.defaultZoom + this.massTotal * config.massZoomFactor) *
+            cellZoom
     }
 
     removeCell(cellIndex) {
