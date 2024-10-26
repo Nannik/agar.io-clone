@@ -37,6 +37,7 @@ function startGame(type) {
     window.chat.registerFunctions();
     window.canvas.socket = socket;
     global.socket = socket;
+    global.zoom = 1;
 }
 
 // Checks if the nick chosen contains valid alphanumeric characters (and underscores).
@@ -280,12 +281,12 @@ function setupSocket(socket) {
 
 const isUnnamedCell = (name) => name.length < 1;
 
-const getPosition = (entity, player, screen) => {
+const getPosition = (entity, player, screen, zoom) => {
     return {
-        x: entity.x - player.x + screen.width / 2,
-        y: entity.y - player.y + screen.height / 2
-    }
-}
+        x: screen.width / 2 + (entity.x - player.x) / zoom,
+        y: screen.height / 2 + (entity.y - player.y) / zoom
+    };
+};
 
 window.requestAnimFrame = (function () {
     return window.requestAnimationFrame ||
@@ -309,21 +310,22 @@ function animloop() {
 
 function gameLoop() {
     if (global.gameStart) {
+        global.zoom = 1;
         graph.fillStyle = global.backgroundColor;
-        graph.fillRect(0, 0, global.screen.width, global.screen.height);
+        graph.fillRect(0, 0, global.screen.width * global.zoom, global.screen.height * global.zoom);
 
-        render.drawGrid(global, player, global.screen, graph);
+        render.drawGrid(global, player, global.screen, graph, global.zoom);
         foods.forEach(food => {
-            let position = getPosition(food, player, global.screen);
-            render.drawFood(position, food, graph);
+            let position = getPosition(food, player, global.screen, global.zoom);
+            render.drawFood(position, food, graph, global.zoom);
         });
         fireFood.forEach(fireFood => {
-            let position = getPosition(fireFood, player, global.screen);
-            render.drawFireFood(position, fireFood, playerConfig, graph);
+            let position = getPosition(fireFood, player, global.screen, global.zoom);
+            render.drawFireFood(position, fireFood, playerConfig, graph, global.zoom);
         });
         viruses.forEach(virus => {
-            let position = getPosition(virus, player, global.screen);
-            render.drawVirus(position, virus, graph);
+            let position = getPosition(virus, player, global.screen, global.zoom);
+            render.drawVirus(position, virus, graph, global.zoom);
         });
 
 
@@ -332,7 +334,7 @@ function gameLoop() {
             right: global.screen.width / 2 + global.game.width - player.x,
             top: global.screen.height / 2 - player.y,
             bottom: global.screen.height / 2 + global.game.height - player.y
-        }
+        };
         if (global.borderDraw) {
             render.drawBorder(borders, graph);
         }
@@ -356,7 +358,7 @@ function gameLoop() {
         cellsToDraw.sort(function (obj1, obj2) {
             return obj1.mass - obj2.mass;
         });
-        render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph);
+        render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph, global.zoom);
 
         socket.emit('0', window.canvas.target); // playerSendTarget "Heartbeat".
     }

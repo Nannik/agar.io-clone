@@ -1,30 +1,30 @@
 const FULL_ANGLE = 2 * Math.PI;
 
-const drawRoundObject = (position, radius, graph) => {
+const drawRoundObject = (position, radius, graph, zoom) => {
     graph.beginPath();
-    graph.arc(position.x, position.y, radius, 0, FULL_ANGLE);
+    graph.arc(position.x, position.y, radius / zoom, 0, FULL_ANGLE);
     graph.closePath();
     graph.fill();
     graph.stroke();
-}
+};
 
-const drawFood = (position, food, graph) => {
+const drawFood = (position, food, graph, zoom) => {
     graph.fillStyle = 'hsl(' + food.hue + ', 100%, 50%)';
     graph.strokeStyle = 'hsl(' + food.hue + ', 100%, 45%)';
     graph.lineWidth = 0;
-    drawRoundObject(position, food.radius, graph);
+    drawRoundObject(position, food.radius, graph, zoom);
 };
 
-const drawVirus = (position, virus, graph) => {
+const drawVirus = (position, virus, graph, zoom) => {
     graph.strokeStyle = virus.stroke;
     graph.fillStyle = virus.fill;
-    graph.lineWidth = virus.strokeWidth;
+    graph.lineWidth = virus.strokeWidth / zoom;
     let theta = 0;
     let sides = 20;
 
     graph.beginPath();
     for (let theta = 0; theta < FULL_ANGLE; theta += FULL_ANGLE / sides) {
-        let point = circlePoint(position, virus.radius, theta);
+        let point = circlePoint(position, virus.radius / zoom, theta);
         graph.lineTo(point.x, point.y);
     }
     graph.closePath();
@@ -32,14 +32,14 @@ const drawVirus = (position, virus, graph) => {
     graph.fill();
 };
 
-const drawFireFood = (position, mass, playerConfig, graph) => {
+const drawFireFood = (position, mass, playerConfig, graph, zoom) => {
     graph.strokeStyle = 'hsl(' + mass.hue + ', 100%, 45%)';
     graph.fillStyle = 'hsl(' + mass.hue + ', 100%, 50%)';
-    graph.lineWidth = playerConfig.border + 2;
-    drawRoundObject(position, mass.radius - 1, graph);
+    graph.lineWidth = playerConfig.border / zoom + 2;
+    drawRoundObject(position, mass.radius - 1, graph, zoom);
 };
 
-const valueInRange = (min, max, value) => Math.min(max, Math.max(min, value))
+const valueInRange = (min, max, value) => Math.min(max, Math.max(min, value));
 
 const circlePoint = (origo, radius, theta) => ({
     x: origo.x + radius * Math.cos(theta),
@@ -50,7 +50,7 @@ const cellTouchingBorders = (cell, borders) =>
     cell.x - cell.radius <= borders.left ||
     cell.x + cell.radius >= borders.right ||
     cell.y - cell.radius <= borders.top ||
-    cell.y + cell.radius >= borders.bottom
+    cell.y + cell.radius >= borders.bottom;
 
 const regulatePoint = (point, borders) => ({
     x: valueInRange(borders.left, borders.right, point.x),
@@ -72,9 +72,9 @@ const drawCellWithLines = (cell, borders, graph) => {
     graph.closePath();
     graph.fill();
     graph.stroke();
-}
+};
 
-const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
+const drawCells = (cells, playerConfig, toggleMassState, borders, graph, zoom) => {
     for (let cell of cells) {
         // Draw the cell itself
         graph.fillStyle = cell.color;
@@ -84,8 +84,9 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
             // Asssemble the cell from lines
             drawCellWithLines(cell, borders, graph);
         } else {
+            graph.lineWidth = 6 / zoom;
             // Border corrections are not needed, the cell can be drawn as a circle
-            drawRoundObject(cell, cell.radius, graph);
+            drawRoundObject(cell, cell.radius, graph, zoom);
         }
 
         // Draw the name of the player
@@ -111,18 +112,33 @@ const drawCells = (cells, playerConfig, toggleMassState, borders, graph) => {
     }
 };
 
-const drawGrid = (global, player, screen, graph) => {
+const drawGrid = (global, player, screen, graph, zoom) => {
     graph.lineWidth = 1;
     graph.strokeStyle = global.lineColor;
     graph.globalAlpha = 0.15;
     graph.beginPath();
 
-    for (let x = -player.x; x < screen.width; x += screen.height / 18) {
+    const step = 100;
+    const w = screen.width * zoom;
+    const h = screen.height * zoom;
+
+    const startX = Math.floor((player.x - w / 2) / step) - 1;
+    const endX = Math.ceil((player.x + w / 2) / step) + 1;
+
+    const startY = Math.floor((player.y - h / 2) / step) - 1;
+    const endY = Math.ceil((player.y + h / 2) / step) + 1;
+
+    const screenLeft = player.x - w / 2;
+    const screenTop = player.y - h / 2;
+
+    for (let i = startX; i <= endX; i += 1) {
+        const x = (step * i - screenLeft) / zoom;
         graph.moveTo(x, 0);
         graph.lineTo(x, screen.height);
     }
 
-    for (let y = -player.y; y < screen.height; y += screen.height / 18) {
+    for (let i = startY; i <= endY; i += 1) {
+        const y = (step * i - screenTop) / zoom;
         graph.moveTo(0, y);
         graph.lineTo(screen.width, y);
     }
@@ -133,13 +149,13 @@ const drawGrid = (global, player, screen, graph) => {
 
 const drawBorder = (borders, graph) => {
     graph.lineWidth = 1;
-    graph.strokeStyle = '#000000'
-    graph.beginPath()
+    graph.strokeStyle = '#000000';
+    graph.beginPath();
     graph.moveTo(borders.left, borders.top);
     graph.lineTo(borders.right, borders.top);
     graph.lineTo(borders.right, borders.bottom);
     graph.lineTo(borders.left, borders.bottom);
-    graph.closePath()
+    graph.closePath();
     graph.stroke();
 };
 
@@ -150,7 +166,7 @@ const drawErrorMessage = (message, graph, screen) => {
     graph.fillStyle = '#FFFFFF';
     graph.font = 'bold 30px sans-serif';
     graph.fillText(message, screen.width / 2, screen.height / 2);
-}
+};
 
 module.exports = {
     drawFood,

@@ -6,6 +6,8 @@ module.exports = {
     fireFood: 20,
     limitSplit: 16,
     defaultPlayerMass: 10,
+    defaultZoom: 1,
+    massZoomFactor: 1.1,
 	virus: {
         fill: "#33ff33",
         stroke: "#19D119",
