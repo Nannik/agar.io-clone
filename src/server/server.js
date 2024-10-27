@@ -261,7 +261,8 @@ const tickPlayer = (currentPlayer) => {
 
 const tickGame = () => {
     map.players.data.forEach(tickPlayer);
-    map.massFood.move(config.gameWidth, config.gameHeight);
+    map.massFood.move(config.gameWidth, config.gameHeight, map.viruses);
+    map.viruses.move(config.gameWidth, config.gameHeight);
 
     map.players.handleCollisions(function (gotEaten, eater) {
         const cellGotEaten = map.players.getCell(gotEaten.playerIndex, gotEaten.cellIndex);

@@ -2,7 +2,7 @@ module.exports = {
     host: "0.0.0.0",
     port: 3000,
     logpath: "logger.php",
-    foodMass: 1,
+    foodMass: 50,
     fireFood: 20,
     limitSplit: 16,
     defaultPlayerMass: 10,
@@ -17,8 +17,11 @@ module.exports = {
             from: 100,
             to: 150
         },
+        maxMass: 200,
         splitMass: 180,
         uniformDisposition: false,
+        frictionSlowDown: 0.5,
+        defaultSpeed: 25
 	},
     gameWidth: 5000,
     gameHeight: 5000,

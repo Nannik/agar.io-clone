@@ -49,9 +49,35 @@ exports.MassFoodManager = class {
         this.data.push(new exports.MassFood(playerFiring, cellIndex, mass));
     }
 
-    move (gameWidth, gameHeight) {
-        for (let currentFood of this.data) {
-            if (currentFood.speed > 0) currentFood.move(gameWidth, gameHeight);
+    move (gameWidth, gameHeight, virusesManager) {
+        const toRemove = new Set();
+        const newViruses = [];
+        for (let [i, currentFood] of this.data.entries()) {
+            if (currentFood.speed > 0) {
+                currentFood.move(gameWidth, gameHeight);
+
+                for (let virus of virusesManager.data) {
+                    if (virus.isColliding(currentFood)) {
+                        toRemove.add(i);
+                        const newVirus = virus.addMass(currentFood.mass, new sat.Vector(
+                            virus.x - currentFood.x,
+                            virus.y - currentFood.y
+                        ).normalize());
+
+                        if (newVirus !== null) {
+                            newViruses.push(newVirus);
+                        }
+                    }
+                }
+            }
+        }
+
+        for (let idx of toRemove) {
+            this.data.splice(idx, 1);
+        }
+
+        for (let virus of newViruses) {
+            virusesManager.pushNew(virus);
         }
     }
 
