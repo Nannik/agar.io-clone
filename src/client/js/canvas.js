@@ -125,7 +125,6 @@ class Canvas {
 
     touchInput(touch) {
         touch.preventDefault();
-        touch.stopPropagation();
     	if (!this.directionLock) {
     		this.parent.target.x = touch.touches[0].clientX - this.width / 2;
     		this.parent.target.y = touch.touches[0].clientY - this.height / 2;

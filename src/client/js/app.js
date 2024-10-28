@@ -140,43 +140,35 @@ roundFoodSetting.onchange = settings.toggleRoundFood;
 var c = window.canvas.cv;
 var graph = c.getContext('2d');
 
-$("#feed").click(function () {
+const feedTouchStart = () => {
     socket.emit('1');
     window.canvas.reenviar = false;
-});
+};
 
-$("#split").click(function () {
+const splitTouchStart = () => {
     socket.emit('2');
     window.canvas.reenviar = false;
-});
+};
 
 const move = $("#move");
 const joy = $("#joystick");
 
 let isMoveTouched = false;
-move.bind('touchstart', function(e) {
+const moveTouchStart = () => {
     isMoveTouched = true;
-});
+};
 
-move.bind('touchend', function (e) {
+const moveTouchEnd = () => {
     isMoveTouched = false;
 
     joy.css("left", '');
     joy.css("bottom", '');
+};
 
-});
-
-document.addEventListener('touchmove', function(e) {
+const moveTouchMove = (touch) => {
     if (isMoveTouched) {
-        let x = null;
-        let y = null;
-
-        for (const touch of e.touches) {
-            if (touch.target.id === 'move' || touch.target.id === 'joystick') {
-                x = touch.clientX;
-                y = $(window).height() - touch.clientY;
-            }
-        }
+        let x = touch.clientX;
+        let y = $(window).height() - touch.clientY;
 
         const centerX = x - 114;
         const centerY = y - 114;
@@ -200,6 +192,37 @@ document.addEventListener('touchmove', function(e) {
         joy.css("left", joyX + 'px');
         joy.css("bottom", joyY + 'px');
     }
+};
+
+document.addEventListener('touchend', (e) => {
+    console.log(e);
+    for (const touch of e.changedTouches) {
+        if (touch.target.id === 'move' || touch.target.id === 'joystick') {
+            moveTouchEnd();
+        }
+    }
+});
+document.addEventListener('touchstart', (e) => {
+    for (const touch of e.touches) {
+        if (touch.target.id === 'move' || touch.target.id === 'joystick') {
+            moveTouchStart();
+        } else if (touch.target.id === 'split') {
+            splitTouchStart();
+        } else if (touch.target.id === 'feed') {
+            feedTouchStart();
+        }
+    }
+});
+
+document.addEventListener('touchmove', (e) => {
+    for (const touch of e.touches) {
+        if (touch.target.id === 'move' || touch.target.id === 'joystick') {
+            moveTouchMove(touch);
+        }
+    }
+});
+
+document.addEventListener('touchmove', function(e) {
 });
 
 function handleDisconnect() {

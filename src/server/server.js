@@ -98,6 +98,7 @@ const addPlayer = (socket) => {
     });
 
     socket.on('playerChat', (data) => {
+        console.log(data.message);
         var _sender = data.sender.replace(/(<([^>]+)>)/ig, '');
         var _message = data.message.replace(/(<([^>]+)>)/ig, '');
 
