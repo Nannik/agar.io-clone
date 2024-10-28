@@ -195,7 +195,6 @@ const moveTouchMove = (touch) => {
 };
 
 document.addEventListener('touchend', (e) => {
-    console.log(e);
     for (const touch of e.changedTouches) {
         if (touch.target.id === 'move' || touch.target.id === 'joystick') {
             moveTouchEnd();
@@ -220,9 +219,6 @@ document.addEventListener('touchmove', (e) => {
             moveTouchMove(touch);
         }
     }
-});
-
-document.addEventListener('touchmove', function(e) {
 });
 
 function handleDisconnect() {
@@ -321,7 +317,9 @@ function handleDisconnect() {
                     player.hue = playerData.hue;
                     player.massTotal = playerData.massTotal;
                     player.cells = playerData.cells;
-                    player.zoom = playerData.zoom;
+                    player.zoom = playerData.zoom || 1;
+                } else if (global.playerType === 'spectator') {
+                    player.zoom = 1;
                 }
                 users = userData;
                 foods = foodsList;
