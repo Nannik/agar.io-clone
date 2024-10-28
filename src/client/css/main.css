@@ -24,10 +24,32 @@ div {
     -ms-user-select: none; /* IE10+ */
 }
 
-#split {
+#move {
     position: absolute;
     bottom: 10px;
     left: 10px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 4px solid rgba(0, 0, 0, .4);
+}
+
+#joystick {
+    display: block;
+    position: absolute;
+    bottom: 65px;
+    left: 65px;
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, .4);
+
+}
+
+#split {
+    position: absolute;
+    bottom: 120px;
+    right: 10px;
     width: 100px;
     height: 100px;
     padding: 5px;

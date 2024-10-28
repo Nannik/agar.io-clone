@@ -68,7 +68,6 @@ exports.VirusManager = class {
 
     pushNew(virus) {
         this.data.push(virus);
-        console.log(virus)
     }
 
     addNew(number) {

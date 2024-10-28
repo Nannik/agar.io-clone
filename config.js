@@ -7,8 +7,9 @@ module.exports = {
     limitSplit: 16,
     defaultPlayerMass: 10,
     defaultZoom: 1,
-    massZoomFactor: 0.01,
-    cellZoomFactor: 0.6,
+    massZoomFactor: 0.001,
+    cellZoomFactor: 0.3,
+    maxZoom: 6,
 	virus: {
         fill: "#33ff33",
         stroke: "#19D119",

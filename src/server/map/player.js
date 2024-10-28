@@ -133,15 +133,16 @@ exports.Player = class {
     }
 
     changeCellMass(cellIndex, massDifference) {
-        this.cells[cellIndex].addMass(massDifference)
+        this.cells[cellIndex].addMass(massDifference);
         this.massTotal += massDifference;
 
-        let cellZoom = this.cells.length * config.cellZoomFactor 
-        if (this.cells.length === 1) cellZoom = 1
+        let massZoom = this.massTotal * config.massZoomFactor;
+        let cellZoom = Math.log2(this.cells.length) * config.cellZoomFactor;
 
-        this.zoom = 
-            (config.defaultZoom + this.massTotal * config.massZoomFactor) *
-            cellZoom
+        this.zoom = Math.min(
+            config.maxZoom,
+            config.defaultZoom + massZoom + cellZoom
+        );
     }
 
     removeCell(cellIndex) {

@@ -3,6 +3,7 @@ var render = require('./render');
 var ChatClient = require('./chat-client');
 var Canvas = require('./canvas');
 var global = require('./global');
+var sat = require('sat');
 
 var playerNameInput = document.getElementById('playerNameInput');
 var socket;
@@ -149,6 +150,58 @@ $("#split").click(function () {
     window.canvas.reenviar = false;
 });
 
+const move = $("#move");
+const joy = $("#joystick");
+
+let isMoveTouched = false;
+move.bind('touchstart', function(e) {
+    isMoveTouched = true;
+});
+
+move.bind('touchend', function (e) {
+    isMoveTouched = false;
+
+    joy.css("left", '');
+    joy.css("bottom", '');
+
+});
+
+document.addEventListener('touchmove', function(e) {
+    if (isMoveTouched) {
+        let x = null;
+        let y = null;
+
+        for (const touch of e.touches) {
+            if (touch.target.id === 'move' || touch.target.id === 'joystick') {
+                x = touch.clientX;
+                y = $(window).height() - touch.clientY;
+            }
+        }
+
+        const centerX = x - 114;
+        const centerY = y - 114;
+
+
+        const maxD = move.width() / 2 - joy.width() / 2;
+        const d = Math.min(
+            maxD,
+            Math.sqrt(Math.pow(centerX, 2) + Math.pow(centerY, 2))
+        );
+        const direction = new sat.Vector(centerX, centerY).normalize();
+
+        const joyX = (move.width() / 2) + (direction.x * d) - (joy.width() / 2);
+        const joyY = (move.width() / 2) + (direction.y * d) - (joy.width() / 2);
+
+        const maxSpeed = 80;
+
+        window.canvas.target.x = direction.x * (d / maxD * maxSpeed);
+        window.canvas.target.y = -1 * direction.y * (d / maxD * maxSpeed);
+
+        joy.css("left", joyX + 'px');
+        joy.css("bottom", joyY + 'px');
+    }
+});
+
 function handleDisconnect() {
     socket.close();
     if (!global.kicked) { // We have a more specific error message 
@@ -157,128 +210,128 @@ function handleDisconnect() {
 }
 
 // socket stuff.
-function setupSocket(socket) {
-    // Handle ping.
-    socket.on('pongcheck', function () {
-        var latency = Date.now() - global.startPingTime;
-        debug('Latency: ' + latency + 'ms');
-        window.chat.addSystemLine('Ping: ' + latency + 'ms');
-    });
+    function setupSocket(socket) {
+        // Handle ping.
+            socket.on('pongcheck', function () {
+                var latency = Date.now() - global.startPingTime;
+                debug('Latency: ' + latency + 'ms');
+                window.chat.addSystemLine('Ping: ' + latency + 'ms');
+            });
 
-    // Handle error.
-    socket.on('connect_error', handleDisconnect);
-    socket.on('disconnect', handleDisconnect);
+        // Handle error.
+            socket.on('connect_error', handleDisconnect);
+        socket.on('disconnect', handleDisconnect);
 
-    // Handle connection.
-    socket.on('welcome', function (playerSettings, gameSizes) {
-        player = playerSettings;
-        player.name = global.playerName;
-        player.screenWidth = global.screen.width;
-        player.screenHeight = global.screen.height;
-        player.target = window.canvas.target;
-        global.player = player;
-        window.chat.player = player;
-        socket.emit('gotit', player);
-        global.gameStart = true;
-        window.chat.addSystemLine('Connected to the game!');
-        window.chat.addSystemLine('Type <b>-help</b> for a list of commands.');
-        if (global.mobile) {
-            document.getElementById('gameAreaWrapper').removeChild(document.getElementById('chatbox'));
-        }
-        c.focus();
-        global.game.width = gameSizes.width;
-        global.game.height = gameSizes.height;
-        resize();
-    });
+        // Handle connection.
+            socket.on('welcome', function (playerSettings, gameSizes) {
+                player = playerSettings;
+                player.name = global.playerName;
+                player.screenWidth = global.screen.width;
+                player.screenHeight = global.screen.height;
+                player.target = window.canvas.target;
+                global.player = player;
+                window.chat.player = player;
+                socket.emit('gotit', player);
+                global.gameStart = true;
+                window.chat.addSystemLine('Connected to the game!');
+                window.chat.addSystemLine('Type <b>-help</b> for a list of commands.');
+                if (global.mobile) {
+                    document.getElementById('gameAreaWrapper').removeChild(document.getElementById('chatbox'));
+                }
+                c.focus();
+                global.game.width = gameSizes.width;
+                global.game.height = gameSizes.height;
+                resize();
+            });
 
-    socket.on('playerDied', (data) => {
-        const player = isUnnamedCell(data.playerEatenName) ? 'An unnamed cell' : data.playerEatenName;
-        //const killer = isUnnamedCell(data.playerWhoAtePlayerName) ? 'An unnamed cell' : data.playerWhoAtePlayerName;
+        socket.on('playerDied', (data) => {
+            const player = isUnnamedCell(data.playerEatenName) ? 'An unnamed cell' : data.playerEatenName;
+            //const killer = isUnnamedCell(data.playerWhoAtePlayerName) ? 'An unnamed cell' : data.playerWhoAtePlayerName;
 
-        //window.chat.addSystemLine('{GAME} - <b>' + (player) + '</b> was eaten by <b>' + (killer) + '</b>');
-        window.chat.addSystemLine('{GAME} - <b>' + (player) + '</b> was eaten');
-    });
+            //window.chat.addSystemLine('{GAME} - <b>' + (player) + '</b> was eaten by <b>' + (killer) + '</b>');
+            window.chat.addSystemLine('{GAME} - <b>' + (player) + '</b> was eaten');
+        });
 
-    socket.on('playerDisconnect', (data) => {
-        window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> disconnected.');
-    });
+        socket.on('playerDisconnect', (data) => {
+            window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> disconnected.');
+        });
 
-    socket.on('playerJoin', (data) => {
-        window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> joined.');
-    });
+        socket.on('playerJoin', (data) => {
+            window.chat.addSystemLine('{GAME} - <b>' + (isUnnamedCell(data.name) ? 'An unnamed cell' : data.name) + '</b> joined.');
+        });
 
-    socket.on('leaderboard', (data) => {
-        leaderboard = data.leaderboard;
-        var status = '<span class="title">Leaderboard</span>';
-        for (var i = 0; i < leaderboard.length; i++) {
-            status += '<br />';
-            if (leaderboard[i].id == player.id) {
-                if (leaderboard[i].name.length !== 0)
-                    status += '<span class="me">' + (i + 1) + '. ' + leaderboard[i].name + "</span>";
-                else
-                    status += '<span class="me">' + (i + 1) + ". An unnamed cell</span>";
-            } else {
-                if (leaderboard[i].name.length !== 0)
-                    status += (i + 1) + '. ' + leaderboard[i].name;
-                else
-                    status += (i + 1) + '. An unnamed cell';
+        socket.on('leaderboard', (data) => {
+            leaderboard = data.leaderboard;
+            var status = '<span class="title">Leaderboard</span>';
+            for (var i = 0; i < leaderboard.length; i++) {
+                status += '<br />';
+                if (leaderboard[i].id == player.id) {
+                    if (leaderboard[i].name.length !== 0)
+                        status += '<span class="me">' + (i + 1) + '. ' + leaderboard[i].name + "</span>";
+                    else
+                        status += '<span class="me">' + (i + 1) + ". An unnamed cell</span>";
+                } else {
+                    if (leaderboard[i].name.length !== 0)
+                        status += (i + 1) + '. ' + leaderboard[i].name;
+                    else
+                        status += (i + 1) + '. An unnamed cell';
+                }
             }
-        }
-        //status += '<br />Players: ' + data.players;
-        document.getElementById('status').innerHTML = status;
-    });
+            //status += '<br />Players: ' + data.players;
+            document.getElementById('status').innerHTML = status;
+        });
 
-    socket.on('serverMSG', function (data) {
-        window.chat.addSystemLine(data);
-    });
+        socket.on('serverMSG', function (data) {
+            window.chat.addSystemLine(data);
+        });
 
-    // Chat.
-    socket.on('serverSendPlayerChat', function (data) {
-        window.chat.addChatLine(data.sender, data.message, false);
-    });
+        // Chat.
+            socket.on('serverSendPlayerChat', function (data) {
+                window.chat.addChatLine(data.sender, data.message, false);
+            });
 
-    // Handle movement.
-    socket.on('serverTellPlayerMove', function (playerData, userData, foodsList, massList, virusList) {
-        if (global.playerType == 'player') {
-            player.x = playerData.x;
-            player.y = playerData.y;
-            player.hue = playerData.hue;
-            player.massTotal = playerData.massTotal;
-            player.cells = playerData.cells;
-            player.zoom = playerData.zoom;
-        }
-        users = userData;
-        foods = foodsList;
-        viruses = virusList;
-        fireFood = massList;
-    });
+        // Handle movement.
+            socket.on('serverTellPlayerMove', function (playerData, userData, foodsList, massList, virusList) {
+                if (global.playerType == 'player') {
+                    player.x = playerData.x;
+                    player.y = playerData.y;
+                    player.hue = playerData.hue;
+                    player.massTotal = playerData.massTotal;
+                    player.cells = playerData.cells;
+                    player.zoom = playerData.zoom;
+                }
+                users = userData;
+                foods = foodsList;
+                viruses = virusList;
+                fireFood = massList;
+            });
 
-    // Death.
-    socket.on('RIP', function () {
-        global.gameStart = false;
-        render.drawErrorMessage('You died!', graph, global.screen);
-        window.setTimeout(() => {
-            document.getElementById('gameAreaWrapper').style.opacity = 0;
-            document.getElementById('startMenuWrapper').style.maxHeight = '1000px';
-            if (global.animLoopHandle) {
-                window.cancelAnimationFrame(global.animLoopHandle);
-                global.animLoopHandle = undefined;
+        // Death.
+            socket.on('RIP', function () {
+                global.gameStart = false;
+                render.drawErrorMessage('You died!', graph, global.screen);
+                window.setTimeout(() => {
+                    document.getElementById('gameAreaWrapper').style.opacity = 0;
+                    document.getElementById('startMenuWrapper').style.maxHeight = '1000px';
+                    if (global.animLoopHandle) {
+                        window.cancelAnimationFrame(global.animLoopHandle);
+                        global.animLoopHandle = undefined;
+                    }
+                }, 2500);
+            });
+
+        socket.on('kick', function (reason) {
+            global.gameStart = false;
+            global.kicked = true;
+            if (reason !== '') {
+                render.drawErrorMessage('You were kicked for: ' + reason, graph, global.screen);
             }
-        }, 2500);
-    });
-
-    socket.on('kick', function (reason) {
-        global.gameStart = false;
-        global.kicked = true;
-        if (reason !== '') {
-            render.drawErrorMessage('You were kicked for: ' + reason, graph, global.screen);
-        }
-        else {
-            render.drawErrorMessage('You were kicked!', graph, global.screen);
-        }
-        socket.close();
-    });
-}
+            else {
+                render.drawErrorMessage('You were kicked!', graph, global.screen);
+            }
+            socket.close();
+        });
+    }
 
 const isUnnamedCell = (name) => name.length < 1;
 
