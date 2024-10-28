@@ -170,8 +170,8 @@ const moveTouchMove = (touch) => {
         let x = touch.clientX;
         let y = $(window).height() - touch.clientY;
 
-        const centerX = x - 114;
-        const centerY = y - 114;
+        const centerX = x - move.width() / 2 + 10;
+        const centerY = y - move.height() / 2 + 10;
 
 
         const maxD = move.width() / 2 - joy.width() / 2;
