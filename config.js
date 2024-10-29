@@ -10,6 +10,7 @@ module.exports = {
     massZoomFactor: 0.001,
     cellZoomFactor: 0.3,
     maxZoom: 6,
+    mobileZoomFactor: 1.5,
 	virus: {
         fill: "#33ff33",
         stroke: "#19D119",

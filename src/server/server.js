@@ -54,7 +54,7 @@ const addPlayer = (socket) => {
 
     socket.on('gotit', function (clientPlayerData) {
         console.log('[INFO] Player ' + clientPlayerData.name + ' connecting!');
-        currentPlayer.init(generateSpawnpoint(), config.defaultPlayerMass);
+        currentPlayer.init(generateSpawnpoint(), config.defaultPlayerMass, clientPlayerData.isMobile);
 
         if (map.players.findIndexByID(socket.id) > -1) {
             console.log('[INFO] Player ID is already connected, kicking.');
@@ -98,7 +98,6 @@ const addPlayer = (socket) => {
     });
 
     socket.on('playerChat', (data) => {
-        console.log(data.message);
         var _sender = data.sender.replace(/(<([^>]+)>)/ig, '');
         var _message = data.message.replace(/(<([^>]+)>)/ig, '');
 

@@ -92,11 +92,12 @@ exports.Player = class {
         this.screenWidth = null;
         this.screenHeight = null;
         this.timeToMerge = null;
+        this.isMobile = null;
         this.setLastHeartbeat();
     }
 
     /* Initalizes things that change with every respawn */
-    init(position, defaultPlayerMass) {
+    init(position, defaultPlayerMass, isMobile) {
         this.cells = [new Cell(position.x, position.y, defaultPlayerMass, MIN_SPEED)];
         this.massTotal = defaultPlayerMass;
         this.x = position.x;
@@ -105,7 +106,9 @@ exports.Player = class {
             x: 0,
             y: 0
         };
-        this.zoom = config.defaultZoom;
+        this.isMobile = isMobile;
+        const zoomFactor = isMobile ? config.mobileZoomFactor : 1;
+        this.zoom = config.defaultZoom * zoomFactor;
     }
 
     clientProvidedData(playerData) {
@@ -139,10 +142,11 @@ exports.Player = class {
         let massZoom = this.massTotal * config.massZoomFactor;
         let cellZoom = Math.log2(this.cells.length) * config.cellZoomFactor;
 
+        const zoomFactor = this.isMobile ? config.mobileZoomFactor : 1;
         this.zoom = Math.min(
             config.maxZoom,
             config.defaultZoom + massZoom + cellZoom
-        );
+        ) * zoomFactor;
     }
 
     removeCell(cellIndex) {
@@ -166,7 +170,7 @@ exports.Player = class {
         for (let i = 0; i < piecesToCreate - 1; i++) {
             this.cells.push(new Cell(cellToSplit.x, cellToSplit.y, newCellsMass, SPLIT_CELL_SPEED));
         }
-        cellToSplit.setMass(newCellsMass)
+        cellToSplit.setMass(newCellsMass);
         this.setLastSplit();
     }
 

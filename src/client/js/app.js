@@ -248,6 +248,7 @@ function handleDisconnect() {
                 player.screenWidth = global.screen.width;
                 player.screenHeight = global.screen.height;
                 player.target = window.canvas.target;
+                player.isMobile = global.mobile;
                 global.player = player;
                 window.chat.player = player;
                 socket.emit('gotit', player);
