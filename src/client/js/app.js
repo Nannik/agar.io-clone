@@ -429,15 +429,23 @@ function gameLoop() {
                 });
             }
         }
-        cellsToDraw.sort(function (obj1, obj2) {
-            return obj1.mass - obj2.mass;
-        });
-        render.drawCells(cellsToDraw, playerConfig, global.toggleMassState, borders, graph, player.zoom);
 
-        viruses.forEach(virus => {
-            let position = getPosition(virus, player, global.screen, player.zoom);
-            render.drawVirus(position, virus, graph, player.zoom);
-        });
+        const sorted = [
+            ...cellsToDraw.map(e => ({ type: 'cell', val: e })),
+            ...viruses.map(e => ({ type: 'virus', val: e }))
+        ].sort((a, b) => a.val.radius - b.val.radius);
+
+        for (const e of sorted) {
+            switch (e.type) {
+                case 'cell':
+                    render.drawCell(e.val, playerConfig, global.toggleMassState, borders, graph, player.zoom);
+                    break;
+                case 'virus':
+                    const pos = getPosition(e.val, player, global.screen, player.zoom);
+                    render.drawVirus(pos, e.val, graph, player.zoom);
+                    break;
+            }
+        }
 
         socket.emit('0', window.canvas.target); // playerSendTarget "Heartbeat".
     }

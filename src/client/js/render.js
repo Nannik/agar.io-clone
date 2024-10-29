@@ -76,38 +76,42 @@ const drawCellWithLines = (cell, borders, graph, zoom) => {
 
 const drawCells = (cells, playerConfig, toggleMassState, borders, graph, zoom) => {
     for (let cell of cells) {
-        // Draw the cell itself
-        graph.fillStyle = cell.color;
-        graph.strokeStyle = cell.borderColor;
-        graph.lineWidth = 6 / zoom;
-        if (cellTouchingBorders(cell, borders)) {
-            // Asssemble the cell from lines
-            drawCellWithLines(cell, borders, graph, zoom);
-        } else {
-            // Border corrections are not needed, the cell can be drawn as a circle
-            drawRoundObject(cell, cell.radius, graph, zoom);
-        }
+        drawCell(cell, playerConfig, toggleMassState, borders, graph, zoom);
+    }
+};
 
-        // Draw the name of the player
-        let fontSize = Math.max(cell.radius / 3, 12);
-        graph.lineWidth = playerConfig.textBorderSize;
-        graph.fillStyle = playerConfig.textColor;
-        graph.strokeStyle = playerConfig.textBorder;
-        graph.miterLimit = 1;
-        graph.lineJoin = 'round';
-        graph.textAlign = 'center';
-        graph.textBaseline = 'middle';
-        graph.font = 'bold ' + fontSize + 'px sans-serif';
-        graph.strokeText(cell.name, cell.x, cell.y);
-        graph.fillText(cell.name, cell.x, cell.y);
+const drawCell = (cell, playerConfig, toggleMassState, borders, graph, zoom) => {
+    // Draw the cell itself
+    graph.fillStyle = cell.color;
+    graph.strokeStyle = cell.borderColor;
+    graph.lineWidth = 6 / zoom;
+    if (cellTouchingBorders(cell, borders)) {
+        // Asssemble the cell from lines
+        drawCellWithLines(cell, borders, graph, zoom);
+    } else {
+        // Border corrections are not needed, the cell can be drawn as a circle
+        drawRoundObject(cell, cell.radius, graph, zoom);
+    }
 
-        // Draw the mass (if enabled)
-        if (toggleMassState === 1) {
-            graph.font = 'bold ' + Math.max(fontSize / 3 * 2, 10) + 'px sans-serif';
-            if (cell.name.length === 0) fontSize = 0;
-            graph.strokeText(Math.round(cell.mass), cell.x, cell.y + fontSize);
-            graph.fillText(Math.round(cell.mass), cell.x, cell.y + fontSize);
-        }
+    // Draw the name of the player
+    let fontSize = Math.max(cell.radius / 3, 12);
+    graph.lineWidth = playerConfig.textBorderSize;
+    graph.fillStyle = playerConfig.textColor;
+    graph.strokeStyle = playerConfig.textBorder;
+    graph.miterLimit = 1;
+    graph.lineJoin = 'round';
+    graph.textAlign = 'center';
+    graph.textBaseline = 'middle';
+    graph.font = 'bold ' + fontSize + 'px sans-serif';
+    graph.strokeText(cell.name, cell.x, cell.y);
+    graph.fillText(cell.name, cell.x, cell.y);
+
+    // Draw the mass (if enabled)
+    if (toggleMassState === 1) {
+        graph.font = 'bold ' + Math.max(fontSize / 3 * 2, 10) + 'px sans-serif';
+        if (cell.name.length === 0) fontSize = 0;
+        graph.strokeText(Math.round(cell.mass), cell.x, cell.y + fontSize);
+        graph.fillText(Math.round(cell.mass), cell.x, cell.y + fontSize);
     }
 };
 
@@ -172,6 +176,7 @@ module.exports = {
     drawVirus,
     drawFireFood,
     drawCells,
+    drawCell,
     drawErrorMessage,
     drawGrid,
     drawBorder
