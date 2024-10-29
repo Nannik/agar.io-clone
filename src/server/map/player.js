@@ -9,7 +9,7 @@ const MIN_SPEED = 6.25;
 const SPLIT_CELL_SPEED = 20;
 const SPEED_DECREMENT = 0.5;
 const MIN_DISTANCE = 50;
-const PUSHING_AWAY_SPEED = 1.1;
+const PUSHING_AWAY_SPEED = 1.7;
 const MERGE_TIMER = 15;
 
 class Cell {
@@ -43,7 +43,7 @@ class Cell {
             x: playerX - this.x + playerTarget.x,
             y: playerY - this.y + playerTarget.y
         };
-        var dist = Math.hypot(target.y, target.x)
+        var dist = Math.hypot(target.y, target.x);
         var deg = Math.atan2(target.y, target.x);
         var slowDown = 1;
         if (this.speed <= MIN_SPEED) {
@@ -224,8 +224,17 @@ exports.Player = class {
 
     mergeCollidingCells() {
         this.enumerateCollidingCells(function (cells, cellAIndex, cellBIndex) {
-            cells[cellAIndex].addMass(cells[cellBIndex].mass);
-            cells[cellBIndex] = null;
+            let cellA = cells[cellAIndex];
+            let cellB = cells[cellBIndex];
+
+            const distance = Math.hypot(cellA.x - cellB.x, cellA.y - cellB.y);
+            const minMergeDistance = (cellA.radius + cellB.radius) * 0.3;
+
+            console.log(distance, minMergeDistance)
+            if (distance < minMergeDistance) {
+                cellA.addMass(cellB.mass);
+                cells[cellBIndex] = null;
+            }
         });
     }
 
@@ -270,25 +279,25 @@ exports.Player = class {
     }
 
     // Calls `callback` if any of the two cells ate the other.
-    static checkForCollisions(playerA, playerB, playerAIndex, playerBIndex, callback) {
-        for (let cellAIndex in playerA.cells) {
-            for (let cellBIndex in playerB.cells) {
-                let cellA = playerA.cells[cellAIndex];
-                let cellB = playerB.cells[cellBIndex];
+        static checkForCollisions(playerA, playerB, playerAIndex, playerBIndex, callback) {
+            for (let cellAIndex in playerA.cells) {
+                for (let cellBIndex in playerB.cells) {
+                    let cellA = playerA.cells[cellAIndex];
+                    let cellB = playerB.cells[cellBIndex];
 
-                let cellAData = { playerIndex: playerAIndex, cellIndex: cellAIndex };
-                let cellBData = { playerIndex: playerBIndex, cellIndex: cellBIndex };
+                    let cellAData = { playerIndex: playerAIndex, cellIndex: cellAIndex };
+                    let cellBData = { playerIndex: playerBIndex, cellIndex: cellBIndex };
 
-                let whoAteWho = Cell.checkWhoAteWho(cellA, cellB);
+                    let whoAteWho = Cell.checkWhoAteWho(cellA, cellB);
 
-                if (whoAteWho == 1) {
-                    callback(cellBData, cellAData);
-                } else if (whoAteWho == 2) {
-                    callback(cellAData, cellBData);
+                    if (whoAteWho == 1) {
+                        callback(cellBData, cellAData);
+                    } else if (whoAteWho == 2) {
+                        callback(cellAData, cellBData);
+                    }
                 }
             }
         }
-    }
 }
 exports.PlayerManager = class {
     constructor() {
