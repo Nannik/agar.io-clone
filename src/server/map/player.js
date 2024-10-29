@@ -230,7 +230,6 @@ exports.Player = class {
             const distance = Math.hypot(cellA.x - cellB.x, cellA.y - cellB.y);
             const minMergeDistance = (cellA.radius + cellB.radius) * 0.3;
 
-            console.log(distance, minMergeDistance)
             if (distance < minMergeDistance) {
                 cellA.addMass(cellB.mass);
                 cells[cellBIndex] = null;
