@@ -184,7 +184,7 @@ const moveTouchMove = (touch) => {
         const joyX = (move.width() / 2) + (direction.x * d) - (joy.width() / 2);
         const joyY = (move.width() / 2) + (direction.y * d) - (joy.width() / 2);
 
-        const maxSpeed = 80;
+        const maxSpeed = 120;
 
         window.canvas.target.x = direction.x * (d / maxD * maxSpeed);
         window.canvas.target.y = -1 * direction.y * (d / maxD * maxSpeed);
