@@ -195,7 +195,8 @@ const moveTouchMove = (touch) => {
 };
 
 document.addEventListener('touchend', (e) => {
-    e.preventDefault();
+    if (!e.target.outerHTML.includes('button')) e.preventDefault();
+
     for (const touch of e.changedTouches) {
         if (touch.target.id === 'move' || touch.target.id === 'joystick') {
             moveTouchEnd();
@@ -203,7 +204,8 @@ document.addEventListener('touchend', (e) => {
     }
 });
 document.addEventListener('touchstart', (e) => {
-    e.preventDefault();
+    if (!e.target.outerHTML.includes('button')) e.preventDefault();
+    
     for (const touch of e.touches) {
         if (touch.target.id === 'move' || touch.target.id === 'joystick') {
             moveTouchStart();
