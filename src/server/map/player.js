@@ -9,7 +9,6 @@ const MIN_SPEED = 6.25;
 const SPLIT_CELL_SPEED = 20;
 const SPEED_DECREMENT = 0.5;
 const MIN_DISTANCE = 50;
-const PUSHING_AWAY_SPEED = 1.7;
 const MERGE_TIMER = 15;
 
 class Cell {
@@ -237,67 +236,101 @@ exports.Player = class {
         });
     }
 
-    pushAwayCollidingCells() {
-        this.enumerateCollidingCells(function (cells, cellAIndex, cellBIndex) {
-            let cellA = cells[cellAIndex],
-                cellB = cells[cellBIndex],
-                vector = new sat.Vector(cellB.x - cellA.x, cellB.y - cellA.y); // vector pointing from A to B
-            vector = vector.normalize().scale(PUSHING_AWAY_SPEED, PUSHING_AWAY_SPEED);
-            if (vector.len() == 0) { // The two cells are perfectly on the top of each other
-                vector = new sat.Vector(0, 1);
+    // a, b - cells
+    calibrateCellsPosition(a, b) {
+        if (
+            a.speed > MIN_SPEED ||
+            b.speed > MIN_SPEED
+        ) {
+            return 0;
+        }
+
+        const v = new sat.Vector(
+            a.x - b.x,
+            a.y - b.y
+        );
+        const dist = Math.hypot(v.x, v.y);
+        const overlap = (b.radius + a.radius) - dist;
+        if (overlap > 0) {
+            const normal = v.normalize();
+
+            a.x += normal.x * overlap/ 2;
+            a.y += normal.y * overlap/ 2;
+
+            b.x -= normal.x * overlap / 2;
+            b.y -= normal.y * overlap / 2;
+        }
+
+        return overlap > 0 ? overlap : 0;
+    }
+
+    calibrateAllCellsPosition(eps) {
+        let sum = 0;
+        for (let i = 0; i < this.cells.length; i++) {
+            for (let j = i + 1; j < this.cells.length; j++) {
+                sum += this.calibrateCellsPosition(this.cells[i], this.cells[j]);
             }
-
-            cellA.x -= vector.x;
-            cellA.y -= vector.y;
-
-            cellB.x += vector.x;
-            cellB.y += vector.y;
-        });
+        }
+        return sum > eps;
     }
 
     move(slowBase, gameWidth, gameHeight, initMassLog) {
+        let calibratePosition = true;
         if (this.cells.length > 1) {
             if (this.timeToMerge < Date.now()) {
                 this.mergeCollidingCells();
-            } else {
-                this.pushAwayCollidingCells();
+                calibratePosition = false;
             }
         }
 
-        let xSum = 0, ySum = 0;
         for (let i = 0; i < this.cells.length; i++) {
             let cell = this.cells[i];
             cell.move(this.x, this.y, this.target, slowBase, initMassLog);
-            gameLogic.adjustForBoundaries(cell, cell.radius/3, 0, gameWidth, gameHeight);
 
+            gameLogic.adjustForBoundaries(cell, cell.radius/3, 0, gameWidth, gameHeight);
+        }
+
+        if (calibratePosition) {
+            for (let flag = true; flag;) {
+                if (!this.calibrateAllCellsPosition(1e-3)) {
+                    flag = false;
+                }
+            }
+        }
+            
+        let xSum = 0;
+        let ySum = 0;
+        for (const cell of this.cells) {
             xSum += cell.x;
             ySum += cell.y;
         }
+
         this.x = xSum / this.cells.length;
         this.y = ySum / this.cells.length;
     }
 
     // Calls `callback` if any of the two cells ate the other.
-        static checkForCollisions(playerA, playerB, playerAIndex, playerBIndex, callback) {
-            for (let cellAIndex in playerA.cells) {
-                for (let cellBIndex in playerB.cells) {
-                    let cellA = playerA.cells[cellAIndex];
-                    let cellB = playerB.cells[cellBIndex];
+    static checkForCollisions(playerA, playerB, playerAIndex, playerBIndex, callback) {
+        for (let cellAIndex in playerA.cells) {
+            for (let cellBIndex in playerB.cells) {
+                let cellA = playerA.cells[cellAIndex];
+                let cellB = playerB.cells[cellBIndex];
 
-                    let cellAData = { playerIndex: playerAIndex, cellIndex: cellAIndex };
-                    let cellBData = { playerIndex: playerBIndex, cellIndex: cellBIndex };
+                let cellAData = { playerIndex: playerAIndex, cellIndex: cellAIndex };
+                let cellBData = { playerIndex: playerBIndex, cellIndex: cellBIndex };
 
-                    let whoAteWho = Cell.checkWhoAteWho(cellA, cellB);
+                let whoAteWho = Cell.checkWhoAteWho(cellA, cellB);
 
-                    if (whoAteWho == 1) {
-                        callback(cellBData, cellAData);
-                    } else if (whoAteWho == 2) {
-                        callback(cellAData, cellBData);
-                    }
+                if (whoAteWho == 1) {
+                    callback(cellBData, cellAData);
+                } else if (whoAteWho == 2) {
+                    callback(cellAData, cellBData);
                 }
             }
         }
-}
+    }
+};
+
 exports.PlayerManager = class {
     constructor() {
         this.data = [];
@@ -333,7 +366,7 @@ exports.PlayerManager = class {
     }
 
     getCell(playerIndex, cellIndex) {
-        return this.data[playerIndex].cells[cellIndex]
+        return this.data[playerIndex].cells[cellIndex];
     }
 
     handleCollisions(callback) {

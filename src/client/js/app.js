@@ -417,7 +417,7 @@ function gameLoop() {
             let color = 'hsl(' + users[i].hue + ', 100%, 50%)';
             let borderColor = 'hsl(' + users[i].hue + ', 100%, 45%)';
             for (var j = 0; j < users[i].cells.length; j++) {
-                const cellPosition = getPosition(users[i].cells[j], player, global.screen, player.zoom)
+                const cellPosition = getPosition(users[i].cells[j], player, global.screen, player.zoom);
                 cellsToDraw.push({
                     color: color,
                     borderColor: borderColor,
