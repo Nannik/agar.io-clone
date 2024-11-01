@@ -219,6 +219,13 @@ const tickPlayer = (currentPlayer) => {
         return SAT.pointInCircle(new Vector(point.x, point.y), circle);
     };
 
+    const isCellInsideVirus = (cell, virus) => {
+        const d = Math.hypot(cell.pos.x - virus.x, cell.pos.y - virus.y);
+        const minD = virus.radius + cell.r * 0.1;
+
+        return d < minD;
+    };
+
     const canEatMass = (cell, cellCircle, cellIndex, mass) => {
         if (isEntityInsideCircle(mass, cellCircle)) {
             if (mass.id === currentPlayer.id && mass.speed > 0 && cellIndex === mass.num)
@@ -231,7 +238,7 @@ const tickPlayer = (currentPlayer) => {
     };
 
     const canEatVirus = (cell, cellCircle, virus) => {
-        return virus.mass < cell.mass && isEntityInsideCircle(virus, cellCircle)
+        return virus.mass < cell.mass && isCellInsideVirus(cellCircle, virus)
     }
 
     const cellsToSplit = [];

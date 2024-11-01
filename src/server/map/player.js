@@ -238,40 +238,33 @@ exports.Player = class {
 
     // a, b - cells
     calibrateCellsPosition(a, b) {
-        if (
-            a.speed > MIN_SPEED ||
-            b.speed > MIN_SPEED
-        ) {
-            return 0;
-        }
-
         const v = new sat.Vector(
             a.x - b.x,
             a.y - b.y
         );
-        const dist = Math.hypot(v.x, v.y);
-        const overlap = (b.radius + a.radius) - dist;
+        const d = Math.hypot(v.x, v.y);
+        const overlap = (b.radius + a.radius) - d;
         if (overlap > 0) {
-            const normal = v.normalize();
+            let normal = v.normalize();
+            if (normal.x === 0 && normal.y === 0) {
+                normal = new sat.Vector(Math.random(), Math.random());
+            }
 
-            a.x += normal.x * overlap/ 2;
-            a.y += normal.y * overlap/ 2;
+            const moveD = Math.min(overlap / 2, MIN_SPEED);
+            a.x += normal.x * moveD;
+            a.y += normal.y * moveD;
 
-            b.x -= normal.x * overlap / 2;
-            b.y -= normal.y * overlap / 2;
+            b.x -= normal.x * moveD;
+            b.y -= normal.y * moveD;
         }
-
-        return overlap > 0 ? overlap : 0;
     }
 
     calibrateAllCellsPosition(eps) {
-        let sum = 0;
         for (let i = 0; i < this.cells.length; i++) {
             for (let j = i + 1; j < this.cells.length; j++) {
-                sum += this.calibrateCellsPosition(this.cells[i], this.cells[j]);
+                this.calibrateCellsPosition(this.cells[i], this.cells[j]);
             }
         }
-        return sum > eps;
     }
 
     move(slowBase, gameWidth, gameHeight, initMassLog) {
@@ -291,11 +284,7 @@ exports.Player = class {
         }
 
         if (calibratePosition) {
-            for (let flag = true; flag;) {
-                if (!this.calibrateAllCellsPosition(1e-3)) {
-                    flag = false;
-                }
-            }
+            this.calibrateAllCellsPosition(1e-3);
         }
             
         let xSum = 0;
